@@ -4,12 +4,14 @@ using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using OpenQA.Selenium;
 using System;
 
 namespace MySettings {
     public class DiscordEventHandler {
 
         public DiscordSocketClient client_;
+        public Queue<SocketSlashCommand> requestQueue = new Queue<SocketSlashCommand>();
 
         public DiscordEventHandler(DiscordSocketClient client) {
             this.client_ = client;
@@ -21,6 +23,47 @@ namespace MySettings {
             await CreateCommand();
 
             await client_.SetGameAsync("/짤");
+
+            Thread ProcessRequestThread = new Thread(() => {
+                while (true) {
+                    Thread.Sleep(100);
+                    while (requestQueue.Count > 0) {
+                        Console.WriteLine($"Request Queue size: {requestQueue.Count}");
+                        var requestCommand = requestQueue.Dequeue();
+                        ProcessRequest(requestCommand);
+                    }
+                }
+            });
+            ProcessRequestThread.Start();
+        }
+
+        public void ProcessRequest(SocketSlashCommand command) {
+
+            var options = command.Data.Options.ToList();
+            if (options.Count == 0) {
+                //TODO 짤 명령어 설명 표시
+                return;
+            }
+
+            var searchWord = options[0].Value.ToString();
+
+            var searchIndex = 0;
+            if (options.Count > 1) {
+                var secondOption = options[1].Value;
+                Int32.TryParse(secondOption.ToString(), out int secondOptionValue);
+                searchIndex = secondOptionValue;
+            }
+
+            var image_url = CommonInstance.imageExplorer.GetImageUrl(searchWord, searchIndex);
+
+            //command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}에 대한 {searchIndex}번째 이미지 결과 {image_url}");
+            if(image_url == null) {
+                command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}, {searchIndex+1} 에 대한 이미지를 찾지 못했습니다... 아마 버그일겁니다.");
+            } else {
+                command.ModifyOriginalResponseAsync(msg => msg.Content = $"{image_url}");
+                command.Channel.SendMessageAsync($"{searchWord}에 대한 {searchIndex+1}번째 이미지 결과");
+            }
+
         }
 
         /** 명령어 생성 부 **/
@@ -75,27 +118,10 @@ namespace MySettings {
         //슬래시 명령어 기능
         public async Task HandleImageSearchCommand(SocketSlashCommand command) {
 
-            var options = command.Data.Options.ToList() ;
-            if(options.Count == 0) {
-                //TODO 짤 명령어 설명 표시
-                return;
-            }
-
-            var searchWord = options[0].Value.ToString();
-
-            var searchIndex = 0;
-            if(options.Count > 1) {
-                var secondOption = options[1].Value;
-                Int32.TryParse(secondOption.ToString(), out int secondOptionValue);
-                searchIndex = secondOptionValue;
-            }
+            requestQueue.Enqueue(command);
 
             await command.DeferAsync();
 
-            var image_url = CommonInstance.imageExplorer.GetImageUrl(searchWord, searchIndex);
-
-            //await command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}에 대한 {searchIndex}번째 이미지 결과 {image_url}");
-            await command.ModifyOriginalResponseAsync(msg => msg.Content = $"{image_url}");
         }
 
     }

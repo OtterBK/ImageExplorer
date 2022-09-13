@@ -14,7 +14,7 @@ namespace Crawler {
         public static IWebDriver chromeDriver_;
 
         public ImageExplorer() {
-            //chromeDriver_ = InitializeDriver(); //동적 실행으로 변경
+            chromeDriver_ = InitializeDriver(); //동적 실행으로 변경
         }
 
         //크롬 드라이버 초기화
@@ -59,37 +59,32 @@ namespace Crawler {
                 return $"{word} 는 존재하지 않습니다.";
             }
 
-            using(var chromeDriver = InitializeDriver()) {
-                try {
-                    Console.WriteLine("Try Start Chrom driver");
+            try {
 
-                    chromeDriver.Url = searchUrl;
+                chromeDriver_.Url = searchUrl;
 
-                    Console.WriteLine("Chrome driver started");
+                var imageSetction = chromeDriver_.FindElement(By.CssSelector("#islrg"));
+                var imageCards = imageSetction.FindElements(By.CssSelector("div[data-ved]"));
 
-                    var imageSetction = chromeDriver.FindElement(By.CssSelector("#islrg"));
-                    var imageCards = imageSetction.FindElements(By.CssSelector("div[data-ved]"));
-
-                    var targetImageCard = imageCards[0];
-                    if (imageIndex > 1) {
-                        targetImageCard = imageCards[imageIndex - 1];
-                    }
-                    targetImageCard.Click();
-
-                    var sideSection = chromeDriver.FindElement(By.CssSelector("#Sva75c"));
-                    var sideImageSection = sideSection.FindElement(By.CssSelector(".v4dQwb img[src^='http'"));
-                    var image_url = sideImageSection.GetAttribute("src");
-
-                    Console.WriteLine($"found url for {word}, {imageIndex}: {image_url}");
-
-                    return image_url;
-                } catch (Exception ex) {
-                    Console.WriteLine($"failed to searching {word} , {imageIndex}");
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
+                var targetImageCard = imageCards[0];
+                if (imageIndex > 1) {
+                    targetImageCard = imageCards[imageIndex - 1];
                 }
+                targetImageCard.Click();
+
+                var sideSection = chromeDriver_.FindElement(By.CssSelector("#Sva75c"));
+                var sideImageSection = sideSection.FindElement(By.CssSelector(".v4dQwb img[src^='http'"));
+                var image_url = sideImageSection.GetAttribute("src");
+
+                Console.WriteLine($"found url for {word}, {imageIndex}: {image_url}");
+
+                return image_url;
+            } catch (Exception ex) {
+                Console.WriteLine($"failed to searching {word} , {imageIndex}");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
             }
-            return $"{word}, {imageIndex} 에 대한 이미지를 찾지 못했습니다... 아마 버그일겁니다.";
+            return null;
         }
 
     }
