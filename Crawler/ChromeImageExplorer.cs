@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using static System.Net.WebRequestMethods;
 
 namespace Crawler {
-    public class ImageExplorer {
+    public class ChromeImageExplorer {
 
         public static IWebDriver chromeDriver_;
 
-        public ImageExplorer() {
+        public ChromeImageExplorer() {
             chromeDriver_ = InitializeDriver(); //동적 실행으로 변경
         }
 

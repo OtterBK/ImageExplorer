@@ -6,7 +6,10 @@ Console.WriteLine("Start Image Searcher");
 
 GlobalSetting.LoadToken();
 GlobalSetting.LoadChromeDriverPath();
-CommonInstance.imageExplorer = new ImageExplorer();
+GlobalSetting.LoadNaverAPIInfo();
+
+CommonInstance.naverSearchEngine = new NaverSearchEngine();
+CommonInstance.imageExplorer = new ChromeImageExplorer();
 CommonInstance.discordHandler = new DiscordHandler();
 
 await Task.Delay(-1);

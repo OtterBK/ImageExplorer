@@ -37,6 +37,35 @@ namespace MySettings {
             ProcessRequestThread.Start();
         }
 
+        //public void ProcessRequest(SocketSlashCommand command) {
+
+        //    var options = command.Data.Options.ToList();
+        //    if (options.Count == 0) {
+        //        //TODO 짤 명령어 설명 표시
+        //        return;
+        //    }
+
+        //    var searchWord = options[0].Value.ToString();
+
+        //    var searchIndex = 1;
+        //    if (options.Count > 1) {
+        //        var secondOption = options[1].Value;
+        //        Int32.TryParse(secondOption.ToString(), out int secondOptionValue);
+        //        searchIndex = secondOptionValue;
+        //    }
+
+        //    var image_url = CommonInstance.imageExplorer.GetImageUrl(searchWord, searchIndex);
+
+        //    //command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}에 대한 {searchIndex}번째 이미지 결과 {image_url}");
+        //    if(image_url == null) {
+        //        command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}, {searchIndex} 에 대한 이미지를 찾지 못했습니다... 아마 버그일겁니다.");
+        //    } else {
+        //        command.ModifyOriginalResponseAsync(msg => msg.Content = $"{image_url}");
+        //        command.Channel.SendMessageAsync($"{searchWord}에 대한 {searchIndex}번째 이미지 결과");
+        //    }
+
+        //}
+
         public void ProcessRequest(SocketSlashCommand command) {
 
             var options = command.Data.Options.ToList();
@@ -47,21 +76,21 @@ namespace MySettings {
 
             var searchWord = options[0].Value.ToString();
 
-            var searchIndex = 0;
+            var searchIndex = 1;
             if (options.Count > 1) {
                 var secondOption = options[1].Value;
                 Int32.TryParse(secondOption.ToString(), out int secondOptionValue);
                 searchIndex = secondOptionValue;
             }
 
-            var image_url = CommonInstance.imageExplorer.GetImageUrl(searchWord, searchIndex);
+            var image_url = CommonInstance.naverSearchEngine.GetImageUrl(searchWord, searchIndex);
 
             //command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}에 대한 {searchIndex}번째 이미지 결과 {image_url}");
-            if(image_url == null) {
-                command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}, {searchIndex+1} 에 대한 이미지를 찾지 못했습니다... 아마 버그일겁니다.");
+            if (image_url == null) {
+                command.ModifyOriginalResponseAsync(msg => msg.Content = $"{searchWord}, {searchIndex} 에 대한 이미지를 찾지 못했습니다... 아마 버그일겁니다.");
             } else {
                 command.ModifyOriginalResponseAsync(msg => msg.Content = $"{image_url}");
-                command.Channel.SendMessageAsync($"{searchWord}에 대한 {searchIndex+1}번째 이미지 결과");
+                command.Channel.SendMessageAsync($"{searchWord}에 대한 {searchIndex}번째 이미지 결과");
             }
 
         }
@@ -86,12 +115,29 @@ namespace MySettings {
                     .WithType(ApplicationCommandOptionType.Integer)
                 );
 
+            var imageSearchWithDriverCommand = new SlashCommandBuilder()
+                .WithName("짤 크롤링")
+                .WithDescription("검색어에 해당하는 짤을 찾습니다..")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("검색어")
+                    .WithDescription("찾고자하는 짤의 검색어를 입력해주세요.")
+                    .WithRequired(true)
+                    .WithType(ApplicationCommandOptionType.String)
+                )
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("짤번호")
+                    .WithDescription("여러 짤 중 몇번째 짤을 가져올 지에 대한 선택 옵션")
+                    .WithRequired(false)
+                    .WithType(ApplicationCommandOptionType.Integer)
+                );
+
             await client_.CreateGlobalApplicationCommandAsync(imageSearchCommand.Build());
 
             foreach (var guild in client_.Guilds) {
                 Console.WriteLine($"creating commands for guild {guild.Id}");
                 try {
                     await guild.CreateApplicationCommandAsync(imageSearchCommand.Build());
+                    //await guild.CreateApplicationCommandAsync(imageSearchWithDriverCommand.Build());
                     Console.WriteLine($"{guild.Id} / {guild.Name} 에 명령어 등록 성공");
                 } catch (HttpException exception) {
                     Console.WriteLine($"{guild.Id} / {guild.Name} 에 명령어 등록 실패");
@@ -110,13 +156,22 @@ namespace MySettings {
 
             switch (commandName) {
                 case "짤":
-                    await HandleImageSearchCommand(command); 
+                    await HandleImageSearchCommand(command);
                     break;
+                //case "짤 크롤링":
+                //    await HandleImageSearchWithDriverCommand(command); 
+                //    break;
             }
         }
 
         //슬래시 명령어 기능
         public async Task HandleImageSearchCommand(SocketSlashCommand command) {
+
+            await command.DeferAsync();
+
+            ProcessRequest(command);
+        }
+        public async Task HandleImageSearchWithDriverCommand(SocketSlashCommand command) {
 
             requestQueue.Enqueue(command);
 

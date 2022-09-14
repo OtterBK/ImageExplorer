@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 namespace Common {
     public class CommonInstance {
 
-        public static ImageExplorer imageExplorer;
+        public static NaverSearchEngine naverSearchEngine;
+        public static ChromeImageExplorer imageExplorer;
         public static DiscordHandler discordHandler;
 
     }
