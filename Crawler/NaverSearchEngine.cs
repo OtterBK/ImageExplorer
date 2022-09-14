@@ -18,8 +18,6 @@ namespace Crawler {
             clientID = GlobalSetting.naverApiClientId;
             clientSecret = GlobalSetting.naverApiClientSecret;
 
-            Console.WriteLine(GetImageUrl("하츠네미쿠"));
-
         }
         public string GetImageUrl(string word, int imageIndex = 1) {
 
@@ -27,13 +25,13 @@ namespace Crawler {
 
             //잼난 커스텀
             if ((word.Contains("보끔") || word.Contains("재욱") || word.Contains("전재") || word.Contains("아저씨") || word.Contains("틀딱") || word.Contains("화석")) &&
-                (word.Contains("여자친구") || word.Contains("애인") || word.Contains("그녀") || word.Contains("아내") || word.Contains("부인") || word.Contains("여친"))
+                (word.Contains("여자친구") || word.Contains("애인") || word.Contains("그녀") || word.Contains("아내") || word.Contains("부인") || word.Contains("여친") || word.Contains("형수"))
             ) {
                 return $"{word} 는 존재하지 않습니다.";
             }
 
             string query = word; // 검색할 문자열
-            string url = "https://openapi.naver.com/v1/search/image?&display=10&start=1&sort=sim&filter=medium&query=" + query; // 결과가 JSON 포맷
+            string url = "https://openapi.naver.com/v1/search/image?&display=10&start=1&sort=sim&filter=small&query=" + query; // 결과가 JSON 포맷
 
             try {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);

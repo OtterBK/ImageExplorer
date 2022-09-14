@@ -9,7 +9,7 @@ GlobalSetting.LoadChromeDriverPath();
 GlobalSetting.LoadNaverAPIInfo();
 
 CommonInstance.naverSearchEngine = new NaverSearchEngine();
-CommonInstance.imageExplorer = new ChromeImageExplorer();
+//CommonInstance.imageExplorer = new ChromeImageExplorer();
 CommonInstance.discordHandler = new DiscordHandler();
 
 await Task.Delay(-1);
